@@ -1,0 +1,40 @@
+--- 
+jobs: 
+  build: 
+    docker: 
+      - 
+        image: "circleci/openjdk:8-jdk-browsers"
+    steps: 
+      - checkout
+      - setup_remote_docker
+      - 
+        restore_cache: 
+          key: "wmt-spring-memcached-client-{{ checksum \"pom.xml\" }}"
+      - 
+        run: "mvn dependency:go-offline"
+      - 
+        save_cache: 
+          key: "wmt-spring-memcached-client-{{ checksum \"pom.xml\" }}"
+          paths: 
+            - ~/.m2
+      - 
+        run: 
+          command: |
+            if mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec | grep -q "SNAPSHOT"; then mvn versions:set -DremoveSnapshot; fi;        
+            echo $(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)-$(echo $CIRCLE_SHA1 | cut -c -7)-$CIRCLE_BUILD_NUM > tempvers.txt
+            mvn versions:set -DnewVersion=$(cat tempvers.txt)        
+          name: "remove snapshot version"
+      
+      - 
+        run: "mvn package"
+      
+      - 
+        run: 
+          command: |
+              cp target/*.jar docker/app/
+              cp tempvers.txt docker/app/
+              docker login -u $DOCKER_USER -p $DOCKER_PASS $DOCKER_REPO
+              docker build --no-cache -t $DOCKER_REPO/$DOCKER_REPO_ORG/$CIRCLE_PROJECT_REPONAME:$(cat tempvers.txt) docker
+              docker push $DOCKER_REPO/$DOCKER_REPO_ORG/$CIRCLE_PROJECT_REPONAME:$(cat tempvers.txt)              
+          name: "Build application Docker image"
+version: 2
