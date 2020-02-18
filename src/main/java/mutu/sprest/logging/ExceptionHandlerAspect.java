@@ -23,23 +23,28 @@ import mutu.sprest.logging.exception.DAOException;
 @Aspect
 @Component
 public class ExceptionHandlerAspect extends PointCutConfig {
-	private static final Logger logger = LogManager.getLogger(ExceptionHandlerAspect.class);
 	
 	@AfterThrowing(pointcut = "publicMethodInsideComponentBean()", throwing = "e")
 	public void componentThrowing(JoinPoint joinPoint, Exception e) throws Throwable {
-		logger.error("Unexpected error in componentBean.", e);
+		Class cla = joinPoint.getSignature().getDeclaringType();
+		Logger logger = LogManager.getLogger(cla);
+		logger.error("Exception occured in " + cla, e);
 		handel(joinPoint, e);
 	}
 
 	@AfterThrowing(pointcut = "publicMethodInsideServiceBean()", throwing = "e")
 	public void serviceThrowing(JoinPoint joinPoint, Exception e) throws Throwable {
-		logger.error("Unexpected error in serviceBean.", e);
+		Class cla = joinPoint.getSignature().getDeclaringType();
+		Logger logger = LogManager.getLogger(cla);
+		logger.error("Exception occured in " + cla, e);		
 		handel(joinPoint, e);
 	}
 	
 	@AfterThrowing(pointcut = "publicMethodInsideDaoBean()", throwing = "e")
 	public void daoThrowing(JoinPoint joinPoint, Exception e) throws Throwable {
-		logger.error("Unexpected error in daoBean", e);
+		Class cla = joinPoint.getSignature().getDeclaringType();
+		Logger logger = LogManager.getLogger(cla);
+		logger.error("Exception occured in " + cla, e);		
 		handel(joinPoint, e);
 	}
 
