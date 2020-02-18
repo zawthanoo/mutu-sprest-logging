@@ -1,39 +1,62 @@
 package mutu.sprest.logging.dto;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class LogHttpRequestEntity {
 	private String type;
 	private String method;
 	private String path;
 	private List<LogHeader> headers;
 	private Object body;
+
 	
-	public void setHeadersMap(Map<String, String> headerMap) {
-		if(headerMap == null) {
-			return;
-		}
-		headers = new ArrayList<LogHeader>();
-		LogHeader logHeader = new LogHeader();
-		String key = null;
-		for (int i = 0; i < headerMap.size(); i++) {
-			Iterator<?> keys = headerMap.keySet().iterator();
-			while (keys.hasNext()) {
-				key = (String) keys.next();
-				logHeader.setKey(key);
-				logHeader.setValue(headerMap.get(key));
-			}
-		}
-		headers.add(logHeader);
+	public LogHttpRequestEntity() {}
+	
+	public LogHttpRequestEntity(String type, String method, String path, List<LogHeader> headers, Object body) {
+		this.type = type;
+		this.method = method;
+		this.path = path;
+		this.headers = headers;
+		this.body = body;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getMethod() {
+		return method;
+	}
+
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public List<LogHeader> getHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(List<LogHeader> headers) {
+		this.headers = headers;
+	}
+
+	public Object getBody() {
+		return body;
+	}
+
+	public void setBody(Object body) {
+		this.body = body;
 	}
 }
