@@ -23,7 +23,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
  */
 @Component
 public class CustomLogInterceptor implements HandlerInterceptor {
-	@Value("${wavemoney-common.log4jThreadContextList}")
+	@Value("${header-key-list.log4jThreadContextList}")
 	private String log4jThreadContextList;
     @Autowired
     private LoggingService loggingService;

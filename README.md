@@ -56,7 +56,7 @@ public class Application extends SpringBootServletInitializer {
 3.In `appllication.yaml`, the following config is **required** where your application is required or not. the value of `log4jThreadContextList` must be empty or CSV. That CSV values is used as http-request's keys to log in every logging process by the feature `ThreadContext` of `log4j`. Check in `Feature` section.
 
 ```yml
-wavemoney-common:
+header-key-list:
   log4jThreadContextList:
   or  
   log4jThreadContextList: HEADER_KEY_1, HEADER_KEY_2, HEADER_KEY_3
