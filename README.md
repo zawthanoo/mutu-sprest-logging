@@ -74,3 +74,99 @@ Sometime, we need to log and track the value/key in every logging process for ev
 </JsonLayout>
 ```
 So, you will see the `correlationId` and `processFlow` in every logging process.
+
+Integration with ELK (Elasticsearch, Logstash, Kibana)
+-------
+Integration with `ELK` by using `log4j` `socket` appenders with `jsonlayout` 
+
+ 1. Install and run `elasticsearch`
+ 2. Install and run `kibana`
+ 3. Install and run `logstash`
+ 
+	logstash.bat -f logstash-log4j2.conf
+ 
+log4j2.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Appenders>
+		<Socket name="Socket" host="localhost" port="4560" protocol="tcp">
+			<JsonLayout properties="false" stacktraceAsString="true" includeStacktrace="true" eventEol="true" compact="true" objectMessageAsJsonObject="true">
+				<KeyValuePair key="correlationId" value="$${ctx:correlationId}"/>
+				<KeyValuePair key="processFlow" value="$${ctx:processFlow}"/>
+				<KeyValuePair key="initrator" value="$${ctx:initrator}"/>
+				<KeyValuePair key="logtime" value="$${date:yyyy-MM-dd'T'HH:mm:ss}" />
+			</JsonLayout> 			
+		</Socket>
+		<Console name="Console" target="SYSTEM_OUT">
+			<JsonLayout properties="false" stacktraceAsString="true" includeStacktrace="true" eventEol="true" compact="true" objectMessageAsJsonObject="true">
+				<KeyValuePair key="correlationId" value="$${ctx:correlationId}"/>
+				<KeyValuePair key="processFlow" value="$${ctx:processFlow}"/>
+				<KeyValuePair key="initrator" value="$${ctx:initrator}"/>
+				<KeyValuePair key="logtime" value="$${date:yyyy-MM-dd'T'HH:mm:ss}" />
+			</JsonLayout>				
+		</Console>		
+	</Appenders>
+	<Loggers>
+		<AsyncLogger name="com.mutu" level="debug" additivity="false">
+			<AppenderRef ref="Console" />
+			<AppenderRef ref="Socket" />
+		</AsyncLogger>
+		<AsyncLogger name="org.apache.catalina.core" level="off" additivity="false">
+			<AppenderRef ref="Console" />
+		</AsyncLogger>		
+		<AsyncRoot level="error">
+			<AppenderRef ref="Console" />
+		</AsyncRoot>
+	</Loggers>
+</Configuration>
+```
+
+logstash-log4j2.conf
+
+```conf
+input {
+  tcp {
+    port => 4560
+	type => "json"
+    codec => json {
+      charset => "UTF-8"
+    }	
+  }
+}
+
+filter {
+	json {
+		source => "message"
+		skip_on_invalid_json => true
+	}
+	if [message][payload]{
+		mutate {
+		    add_field => { "payload" => "%{[message][payload]}"}
+			add_field => { "log" => "%{[message][process]}"}
+			remove_field => [ "[message]" ]
+		}
+	}
+	if [message] =~ /.*/ {
+		mutate {
+			rename => { "message" => "log" }
+		}
+	}
+	mutate {
+		remove_field => [ "[loggerFqcn]" ]
+	}	
+}
+
+output {
+  elasticsearch {
+    hosts => ["localhost:9200"]
+    index => "logstash"
+  }
+}
+```
+
+Note: if you would like to see `log4j` json log without any changes, you can remove `logstash` filter part.
+ 
+ 
+
